@@ -1,0 +1,61 @@
+local input = [[
+local uis = game:GetService("UserInputService")
+local rs = game:GetService("RunService")
+local lp = game.Players.LocalPlayer
+local cam = workspace.CurrentCamera
+local aim = false
+local tar
+
+local function g()
+    local c = math.huge
+    local pl = nil
+    for i,v in pairs(game.Players:GetPlayers()) do
+        if v ~= lp and v.Character and v.Character:FindFirstChild("Head") then
+            local h = v.Character:FindFirstChild("Humanoid")
+            if h and h.Health > 0 then
+                local p = cam:WorldToViewportPoint(v.Character.Head.Position)
+                if p.Z > 0 then
+                    local m = Vector2.new(uis:GetMouseLocation().X, uis:GetMouseLocation().Y)
+                    local d = (m - Vector2.new(p.X, p.Y)).Magnitude
+                    if d < c then
+                        c = d
+                        pl = v
+                    end
+                end
+            end
+        end
+    end
+    return pl
+end
+
+uis.InputBegan:Connect(function(k,gp)
+    if gp then return end
+    if k.KeyCode == Enum.KeyCode.T then
+        aim = not aim
+        if aim then
+            tar = g()
+        else
+            tar = nil
+        end
+    end
+end)
+
+rs.RenderStepped:Connect(function()
+    if aim and tar and tar.Character and tar.Character:FindFirstChild("Head") then
+        local p = cam:WorldToViewportPoint(tar.Character.Head.Position)
+        mousemoverel((p.X - uis:GetMouseLocation().X)/2, (p.Y - uis:GetMouseLocation().Y)/2)
+    end
+end)
+]]
+
+local key = 121
+local enc = {}
+for i = 1, #input do
+    enc[#enc+1] = string.char(bit32.bxor(input:byte(i), key))
+end
+
+local result = table.concat(enc)
+
+local f = io.open("aimbot_obf.txt", "wb")
+f:write(result)
+f:close()
